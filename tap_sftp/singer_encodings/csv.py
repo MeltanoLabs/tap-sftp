@@ -7,17 +7,11 @@ from tap_sftp import decrypt
 
 SDC_EXTRA_COLUMN = "_sdc_extra"
 
-# TODO: dont make decrypt default true
-def get_row_iterators(iterable, options={}, infer_compression=False, gpg_decrypt=True):
+def get_row_iterators(iterable, options={}, infer_compression=False):
     """Accepts an interable, options and a flag to infer compression and yields
     csv.DictReader objects which can be used to yield CSV rows."""
-    file_name = options.get('file_name')
-    if gpg_decrypt:
-        # decrypt and remove extension
-        iterable = decrypt.gpg_decrypt(iterable, file_name)
-        file_name = ''
     if infer_compression:
-        compressed_iterables = compression.infer(iterable, file_name)
+        compressed_iterables = compression.infer(iterable, options.get('file_name'))
     for item in compressed_iterables:
         yield get_row_iterator(item, options=options)
 

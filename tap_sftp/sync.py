@@ -37,7 +37,7 @@ def sync_stream(config, state, stream):
         return records_streamed
 
     for f in files:
-        records_streamed += sync_file(conn, f, stream, table_spec)
+        records_streamed += sync_file(conn, f, stream, table_spec, config)
         state = singer.write_bookmark(state, table_name, 'modified_since', f['last_modified'].isoformat())
         singer.write_state(state)
 
@@ -45,10 +45,14 @@ def sync_stream(config, state, stream):
 
     return records_streamed
 
-def sync_file(conn, f, stream, table_spec):
+def sync_file(conn, f, stream, table_spec, config):
     LOGGER.info('Syncing file "%s".', f["filepath"])
-
-    file_handle = conn.get_file_handle(f)
+    decryption_configs = config.get('decryption_configs')
+    if decryption_configs:
+        file_handle, decrypted_name = conn.get_file_handle(f, decryption_configs)
+        f['filepath'] = decrypted_name
+    else:
+        file_handle = conn.get_file_handle(f, gpg_encrypted=True)
 
     # Add file_name to opts and flag infer_compression to support gzipped files
     opts = {'key_properties': table_spec['key_properties'],

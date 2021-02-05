@@ -9,7 +9,7 @@ from tap_sftp.sync import sync_stream
 from tap_sftp.stats import STATS
 from terminaltables import AsciiTable
 
-REQUIRED_CONFIG_KEYS = ["username", "port", "private_key_file", "host"]
+REQUIRED_CONFIG_KEYS = ["username", "port", "host", "tables", "start_date"]
 LOGGER = singer.get_logger()
 
 def do_discover(config):

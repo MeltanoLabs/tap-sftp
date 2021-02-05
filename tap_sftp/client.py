@@ -1,14 +1,17 @@
 import io
 import os
-import backoff
-import paramiko
-import pytz
 import re
-import singer
 import stat
 import time
 from datetime import datetime
+
+import backoff
+import paramiko
+import pytz
+import singer
 from paramiko.ssh_exception import AuthenticationException, SSHException
+
+from tap_sftp import decrypt
 
 LOGGER = singer.get_logger()
 
@@ -19,6 +22,7 @@ class SFTPConnection():
         self.password = password
         self.port = int(port)or 22
         self.__active_connection = False
+        self.decrypted_file = None
         self.key = None
         if private_key_file:
             key_path = os.path.expanduser(private_key_file)
@@ -67,7 +71,7 @@ class SFTPConnection():
         """ Clean up the socket when this class gets garbage collected. """
         self.close()
 
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         """ Clean up the socket when this class gets garbage collected. """
         self.close()
 
@@ -76,6 +80,10 @@ class SFTPConnection():
             self.sftp.close()
             self.transport.close()
             self.__active_connection = False
+        # decrypted files require an open file object, so close it
+        if self.decrypted_file:
+            self.decrypted_file.close()
+            os.remove(self.decrypted_file.name)
 
     def match_files_for_table(self, files, table_name, search_pattern):
         LOGGER.info("Searching for files for table '%s', matching pattern: %s", table_name, table_pattern)
@@ -143,9 +151,24 @@ class SFTPConnection():
 
         return matching_files
 
-    def get_file_handle(self, f):
+    def get_file_handle(self, f, decryption_configs=None):
         """ Takes a file dict {"filepath": "...", "last_modified": "..."} and returns a handle to the file. """
-        return self.sftp.open(f["filepath"], 'rb')
+        sftp_file_path = f["filepath"]
+        if decryption_configs:
+            # decrypt to a temp file, then read it back in as the new file object
+            file_obj = self.sftp.open(sftp_file_path, 'rb')
+            decrypted_path = decrypt.gpg_decrypt(
+                file_obj,
+                decryption_configs.get('tmp_dir'),
+                sftp_file_path,
+                decryption_configs.get('key_path'),
+                decryption_configs.get('gnupghome')
+            )
+            self.sftp.close()
+            self.decrypted_file = open(decrypted_path, 'rb')
+            return self.decrypted_file, decrypted_path
+        else:
+            return self.sftp.open(sftp_file_path, 'rb')
 
     def get_files_matching_pattern(self, files, pattern):
         """ Takes a file dict {"filepath": "...", "last_modified": "..."} and a regex pattern string, and returns files matching that pattern. """
