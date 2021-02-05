@@ -1,9 +1,10 @@
 import json
+
 import singer
-from singer import metadata, utils, Transformer
-from tap_sftp import client
-from tap_sftp import stats
-from singer_encodings import csv
+from singer import Transformer, metadata, utils
+
+from tap_sftp import client, stats
+from tap_sftp.singer_encodings import compression, csv
 
 LOGGER = singer.get_logger()
 
