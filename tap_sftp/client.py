@@ -2,6 +2,7 @@ import io
 import os
 import re
 import stat
+import tempfile
 import time
 from datetime import datetime
 
@@ -157,17 +158,17 @@ class SFTPConnection():
         if decryption_configs:
             # decrypt to a temp file, then read it back in as the new file object
             file_obj = self.sftp.open(sftp_file_path, 'rb')
-            decrypted_path = decrypt.gpg_decrypt(
-                file_obj,
-                decryption_configs.get('tmp_dir'),
-                sftp_file_path,
-                decryption_configs.get('key'),
-                decryption_configs.get('gnupghome'),
-                decryption_configs.get('passphrase')
-            )
-            self.sftp.close()
-            self.decrypted_file = open(decrypted_path, 'rb')
-            return self.decrypted_file, decrypted_path
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                decrypted_path = decrypt.gpg_decrypt(
+                    file_obj,
+                    tmpdirname,
+                    sftp_file_path,
+                    decryption_configs.get('key'),
+                    decryption_configs.get('gnupghome'),
+                    decryption_configs.get('passphrase')
+                )
+                self.decrypted_file = open(decrypted_path, 'rb')
+                return self.decrypted_file, decrypted_path
         else:
             return self.sftp.open(sftp_file_path, 'rb')
 
