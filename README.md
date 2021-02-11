@@ -35,10 +35,25 @@ $ pip install .
         "username": "YOUR_USER",
         "password": "YOUR_PASS",
         "private_key_file": null,
-        "tables": "[{\"table_name\":\"MyExportData\",\"search_prefix\":\"\/Export\",\"search_pattern\":\"MyExportData.csv\",\"key_properties\":[],\"delimiter\":\",\"}]",
-        "start_date": "2021-01-28"
+        "tables": [
+            {
+                "table_name": "MyExportData",
+                "search_prefix": "\/Export\/SubFolder",
+                "search_pattern": "MyExportData.zip.gpg",
+                "key_properties": [],
+                "delimiter": ","
+            }
+        ],
+        "start_date":"2021-01-28",
+        "decryption_configs": {
+            "tmp_dir": "/your/dir/",
+            "gnupghome": "/your/dir/.gnupg",
+            "passphrase": "your_gpg_passphrase",
+            "key": "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\n [YOUR ENCODED PRIVATE KEY] \n=TcbH\n-----END PGP PRIVATE KEY BLOCK-----"
+        }
     }
    ```
+   If using the decryption feature you must pass your private key as an encoded string in singer config file.
 
 ## Discovery mode:
 
