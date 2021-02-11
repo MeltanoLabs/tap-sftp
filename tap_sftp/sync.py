@@ -17,7 +17,7 @@ def sync_stream(config, state, stream):
     LOGGER.info('Getting files modified since %s.', modified_since)
 
     conn = client.connection(config)
-    table_spec = [c for c in json.loads(config["tables"]) if c["table_name"]==table_name]
+    table_spec = [table_config for table_config in config["tables"] if table_config["table_name"]==table_name]
     if len(table_spec) == 0:
         LOGGER.info("No table configuration found for '%s', skipping stream", table_name)
         return 0
