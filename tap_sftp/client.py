@@ -161,8 +161,9 @@ class SFTPConnection():
                 file_obj,
                 decryption_configs.get('tmp_dir'),
                 sftp_file_path,
-                decryption_configs.get('key_path'),
-                decryption_configs.get('gnupghome')
+                decryption_configs.get('key'),
+                decryption_configs.get('gnupghome'),
+                decryption_configs.get('passphrase')
             )
             self.sftp.close()
             self.decrypted_file = open(decrypted_path, 'rb')
