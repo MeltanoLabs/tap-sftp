@@ -8,13 +8,13 @@ SDC_SOURCE_LINENO_COLUMN = "_sdc_source_lineno"
 # TODO: Add additional logging
 
 # TODO: conn needs get_files and get_file_handle functions
-def get_schema_for_table(conn, table_spec):
+def get_schema_for_table(conn, table_spec, config):
     files = conn.get_files(table_spec['search_prefix'], table_spec['search_pattern'])
 
     if not files:
         return {}
 
-    samples = sample_files(conn, table_spec, files)
+    samples = sample_files(conn, table_spec, files, config)
 
     data_schema = {
         **generate_schema(samples, table_spec),
@@ -28,12 +28,17 @@ def get_schema_for_table(conn, table_spec):
         'properties': data_schema,
     }
 
-def sample_file(conn, table_spec, f, sample_rate, max_records):
+def sample_file(conn, table_spec, f, sample_rate, max_records, config):
     table_name = table_spec['table_name']
     plurality = "s" if sample_rate != 1 else ""
 
     samples = []
-    file_handle = conn.get_file_handle(f)
+    decryption_configs = config.get('decryption_configs')
+    if decryption_configs:
+        file_handle, decrypted_name = conn.get_file_handle(f, decryption_configs)
+        f['filepath'] = decrypted_name
+    else:
+        file_handle = conn.get_file_handle(f)
 
     # Add file_name to opts and flag infer_compression to support gzipped files
     opts = {'key_properties': table_spec['key_properties'],
@@ -65,8 +70,8 @@ def sample_file(conn, table_spec, f, sample_rate, max_records):
     return (empty_file, samples)
 
 # pylint: disable=too-many-arguments
-def sample_files(conn, table_spec, files,
-                 sample_rate=1, max_records=1000, max_files=5):
+def sample_files(conn, table_spec, files, config,
+                 sample_rate=1, max_records=1000, max_files=1):
     to_return = []
     empty_samples = []
 
@@ -76,7 +81,7 @@ def sample_files(conn, table_spec, files,
 
     for f in sorted_files:
         empty_file, samples = sample_file(conn, table_spec, f,
-                                          sample_rate, max_records)
+                                          sample_rate, max_records, config)
 
         if empty_file:
             empty_samples += samples

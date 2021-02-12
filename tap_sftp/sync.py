@@ -52,7 +52,7 @@ def sync_file(conn, f, stream, table_spec, config):
         file_handle, decrypted_name = conn.get_file_handle(f, decryption_configs)
         f['filepath'] = decrypted_name
     else:
-        file_handle = conn.get_file_handle(f, gpg_encrypted=True)
+        file_handle = conn.get_file_handle(f)
 
     # Add file_name to opts and flag infer_compression to support gzipped files
     opts = {'key_properties': table_spec['key_properties'],

@@ -84,7 +84,6 @@ class SFTPConnection():
         # decrypted files require an open file object, so close it
         if self.decrypted_file:
             self.decrypted_file.close()
-            os.remove(self.decrypted_file.name)
 
     def match_files_for_table(self, files, table_name, search_pattern):
         LOGGER.info("Searching for files for table '%s', matching pattern: %s", table_name, table_pattern)
@@ -157,6 +156,7 @@ class SFTPConnection():
         sftp_file_path = f["filepath"]
         if decryption_configs:
             # decrypt to a temp file, then read it back in as the new file object
+            LOGGER.info(f'Decrypting file: {sftp_file_path}')
             file_obj = self.sftp.open(sftp_file_path, 'rb')
             with tempfile.TemporaryDirectory() as tmpdirname:
                 decrypted_path = decrypt.gpg_decrypt(
