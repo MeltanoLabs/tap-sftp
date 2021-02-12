@@ -7,6 +7,7 @@ from tap_sftp import decrypt
 
 SDC_EXTRA_COLUMN = "_sdc_extra"
 
+
 def get_row_iterators(iterable, options={}, infer_compression=False):
     """Accepts an interable, options and a flag to infer compression and yields
     csv.DictReader objects which can be used to yield CSV rows."""
@@ -14,6 +15,7 @@ def get_row_iterators(iterable, options={}, infer_compression=False):
         compressed_iterables = compression.infer(iterable, options.get('file_name'))
     for item in compressed_iterables:
         yield get_row_iterator(item, options=options)
+
 
 def get_row_iterator(iterable, options=None):
     """Accepts an interable, options and returns a csv.DictReader object
@@ -23,7 +25,12 @@ def get_row_iterator(iterable, options=None):
     file_stream = codecs.iterdecode(iterable, encoding='utf-8')
 
     # Replace any NULL bytes in the line given to the DictReader
-    reader = csv.DictReader((line.replace('\0', '') for line in file_stream), fieldnames=None, restkey=SDC_EXTRA_COLUMN, delimiter=options.get('delimiter', ','))
+    reader = csv.DictReader(
+        (line.replace('\0', '') for line in file_stream),
+        fieldnames=None,
+        restkey=SDC_EXTRA_COLUMN,
+        delimiter=options.get('delimiter', ',')
+    )
 
     headers = set(reader.fieldnames)
     if options.get('key_properties'):

@@ -5,9 +5,7 @@ from . import csv
 SDC_SOURCE_FILE_COLUMN = "_sdc_source_file"
 SDC_SOURCE_LINENO_COLUMN = "_sdc_source_lineno"
 
-# TODO: Add additional logging
 
-# TODO: conn needs get_files and get_file_handle functions
 def get_schema_for_table(conn, table_spec, config):
     files = conn.get_files(table_spec['search_prefix'], table_spec['search_pattern'])
 
@@ -28,10 +26,8 @@ def get_schema_for_table(conn, table_spec, config):
         'properties': data_schema,
     }
 
-def sample_file(conn, table_spec, f, sample_rate, max_records, config):
-    table_name = table_spec['table_name']
-    plurality = "s" if sample_rate != 1 else ""
 
+def sample_file(conn, table_spec, f, sample_rate, max_records, config):
     samples = []
     decryption_configs = config.get('decryption_configs')
     if decryption_configs:
@@ -69,7 +65,7 @@ def sample_file(conn, table_spec, f, sample_rate, max_records, config):
 
     return (empty_file, samples)
 
-# pylint: disable=too-many-arguments
+
 def sample_files(conn, table_spec, files, config,
                  sample_rate=1, max_records=1000, max_files=1):
     to_return = []
@@ -98,6 +94,7 @@ def sample_files(conn, table_spec, files, config,
 
     return to_return
 
+
 def infer(datum):
     """
     Returns the inferred data type
@@ -112,13 +109,14 @@ def infer(datum):
         pass
 
     try:
-        #numbers are NOT floats, they are DECIMALS
+        # numbers are NOT floats, they are DECIMALS
         float(datum)
         return 'number'
     except (ValueError, TypeError):
         pass
 
     return 'string'
+
 
 def count_sample(sample, counts, table_spec):
     for key, value in sample.items():
@@ -135,6 +133,7 @@ def count_sample(sample, counts, table_spec):
             counts[key][datatype] = counts[key].get(datatype, 0) + 1
 
     return counts
+
 
 def pick_datatype(counts):
     """
@@ -163,6 +162,7 @@ def pick_datatype(counts):
         to_return = 'number'
 
     return to_return
+
 
 def generate_schema(samples, table_spec):
     counts = {}

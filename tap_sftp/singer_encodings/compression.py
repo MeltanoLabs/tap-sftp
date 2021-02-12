@@ -1,6 +1,7 @@
 import gzip
 import zipfile
 
+
 def infer(iterable, file_name):
     """Uses the incoming file_name and checks the end of the string
     for supported compression types"""

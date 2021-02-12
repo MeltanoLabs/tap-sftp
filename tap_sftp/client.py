@@ -16,12 +16,13 @@ from tap_sftp import decrypt
 
 LOGGER = singer.get_logger()
 
+
 class SFTPConnection():
     def __init__(self, host, username, password=None, private_key_file=None, port=None):
         self.host = host
         self.username = username
         self.password = password
-        self.port = int(port)or 22
+        self.port = int(port) or 22
         self.__active_connection = False
         self.decrypted_file = None
         self.key = None
@@ -45,13 +46,13 @@ class SFTPConnection():
             try:
                 self.transport = paramiko.Transport((self.host, self.port))
                 self.transport.use_compression(True)
-                self.transport.connect(username = self.username, password = self.password, hostkey = None, pkey = self.key)
+                self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=self.key)
                 self.sftp = paramiko.SFTPClient.from_transport(self.transport)
             except (AuthenticationException, SSHException) as ex:
                 self.transport.close()
                 self.transport = paramiko.Transport((self.host, self.port))
                 self.transport.use_compression(True)
-                self.transport.connect(username= self.username, password = self.password, hostkey = None, pkey = None)
+                self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=None)
                 self.sftp = paramiko.SFTPClient.from_transport(self.transport)
             self.__active_connection = True
 
@@ -90,6 +91,12 @@ class SFTPConnection():
         matcher = re.compile(search_pattern)
         return [f for f in files if matcher.search(f["filepath"])]
 
+    def is_empty(self, file_attr):
+        return file_attr.st_size == 0
+
+    def is_directory(self, file_attr):
+        return stat.S_ISDIR(file_attr.st_mode)
+
     def get_files_by_prefix(self, prefix):
         """
         Accesses the underlying file system and gets all files that match "prefix", in this case, a directory path.
@@ -106,14 +113,12 @@ class SFTPConnection():
         except FileNotFoundError as e:
             raise Exception("Directory '{}' does not exist".format(prefix)) from e
 
-        is_empty = lambda a: a.st_size == 0
-        is_directory = lambda a: stat.S_ISDIR(a.st_mode)
         for file_attr in result:
             # NB: This only looks at the immediate level beneath the prefix directory
-            if is_directory(file_attr):
+            if self.is_directory(file_attr):
                 files += self.get_files_by_prefix(prefix + '/' + file_attr.filename)
             else:
-                if is_empty(file_attr):
+                if self.is_empty(file_attr):
                     continue
 
                 last_modified = file_attr.st_mtime
@@ -173,9 +178,11 @@ class SFTPConnection():
             return self.sftp.open(sftp_file_path, 'rb')
 
     def get_files_matching_pattern(self, files, pattern):
-        """ Takes a file dict {"filepath": "...", "last_modified": "..."} and a regex pattern string, and returns files matching that pattern. """
+        """ Takes a file dict {"filepath": "...", "last_modified": "..."} and a regex pattern string, and returns
+            files matching that pattern. """
         matcher = re.compile(pattern)
         return [f for f in files if matcher.search(f["filepath"])]
+
 
 def connection(config):
     return SFTPConnection(config['host'],

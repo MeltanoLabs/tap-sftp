@@ -8,6 +8,7 @@ from tap_sftp.singer_encodings import compression, csv
 
 LOGGER = singer.get_logger()
 
+
 def sync_stream(config, state, stream):
     table_name = stream.tap_stream_id
     modified_since = utils.strptime_to_utc(singer.get_bookmark(state, table_name, 'modified_since') or
@@ -17,7 +18,7 @@ def sync_stream(config, state, stream):
     LOGGER.info('Getting files modified since %s.', modified_since)
 
     conn = client.connection(config)
-    table_spec = [table_config for table_config in config["tables"] if table_config["table_name"]==table_name]
+    table_spec = [table_config for table_config in config["tables"] if table_config["table_name"] == table_name]
     if len(table_spec) == 0:
         LOGGER.info("No table configuration found for '%s', skipping stream", table_name)
         return 0
@@ -44,6 +45,7 @@ def sync_stream(config, state, stream):
     LOGGER.info('Wrote %s records for table "%s".', records_streamed, table_name)
 
     return records_streamed
+
 
 def sync_file(conn, f, stream, table_spec, config):
     LOGGER.info('Syncing file "%s".', f["filepath"])

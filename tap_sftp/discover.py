@@ -6,7 +6,8 @@ from singer import metadata
 from tap_sftp import client
 from tap_sftp.singer_encodings import json_schema
 
-LOGGER= singer.get_logger()
+LOGGER = singer.get_logger()
+
 
 def discover_streams(config):
     streams = []

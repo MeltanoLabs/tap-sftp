@@ -12,6 +12,7 @@ from terminaltables import AsciiTable
 REQUIRED_CONFIG_KEYS = ["username", "port", "host", "tables", "start_date"]
 LOGGER = singer.get_logger()
 
+
 def do_discover(config):
     LOGGER.info("Starting discover")
     streams = discover_streams(config)
@@ -21,8 +22,10 @@ def do_discover(config):
     json.dump(catalog, sys.stdout, indent=2)
     LOGGER.info("Finished discover")
 
+
 def stream_is_selected(mdata):
     return mdata.get((), {}).get('selected', False)
+
 
 def do_sync(config, catalog, state):
     LOGGER.info('Starting sync.')
@@ -64,9 +67,8 @@ def do_sync(config, catalog, state):
     data = headers + rows
     table = AsciiTable(data, title='Extraction Summary')
     LOGGER.info("\n\n%s", table.table)
-
-
     LOGGER.info('Done syncing.')
+
 
 @singer.utils.handle_top_exception(LOGGER)
 def main():
@@ -76,6 +78,7 @@ def main():
         do_discover(args.config)
     elif args.catalog or args.properties:
         do_sync(args.config, args.catalog, args.state)
+
 
 if __name__ == '__main__':
     main()
