@@ -172,7 +172,11 @@ class SFTPConnection():
                     decryption_configs.get('gnupghome'),
                     decryption_configs.get('passphrase')
                 )
-                self.decrypted_file = open(decrypted_path, 'rb')
+                try:
+                    self.decrypted_file = open(decrypted_path, 'rb')
+                except FileNotFoundError:
+                    raise Exception(f'Decryption of file failed: {sftp_file_path}')
+
                 return self.decrypted_file, decrypted_path
         else:
             return self.sftp.open(sftp_file_path, 'rb')
@@ -181,6 +185,7 @@ class SFTPConnection():
         """ Takes a file dict {"filepath": "...", "last_modified": "..."} and a regex pattern string, and returns
             files matching that pattern. """
         matcher = re.compile(pattern)
+        LOGGER.info(f"Searching for files for matching pattern: {pattern}")
         return [f for f in files if matcher.search(f["filepath"])]
 
 

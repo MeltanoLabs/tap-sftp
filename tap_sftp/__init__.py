@@ -1,15 +1,17 @@
 import json
 import sys
-import singer
 
-from singer import metadata
-from singer import utils
-from tap_sftp.discover import discover_streams
-from tap_sftp.sync import sync_stream
-from tap_sftp.stats import STATS
+import singer
+from singer import metadata, utils
 from terminaltables import AsciiTable
 
+from tap_sftp.discover import discover_streams
+from tap_sftp.stats import STATS
+from tap_sftp.sync import sync_stream
+
 REQUIRED_CONFIG_KEYS = ["username", "port", "host", "tables", "start_date"]
+REQUIRED_DECRYPT_CONFIG_KEYS = ['SSM_key_name', 'gnupghome', 'passphrase']
+
 LOGGER = singer.get_logger()
 
 
@@ -73,6 +75,11 @@ def do_sync(config, catalog, state):
 @singer.utils.handle_top_exception(LOGGER)
 def main():
     args = utils.parse_args(REQUIRED_CONFIG_KEYS)
+
+    decrypt_configs = args.config.get('decryption_configs')
+    if decrypt_configs:
+        # validate decryption configs
+        utils.check_config(decrypt_configs, REQUIRED_DECRYPT_CONFIG_KEYS)
 
     if args.discover:
         do_discover(args.config)
