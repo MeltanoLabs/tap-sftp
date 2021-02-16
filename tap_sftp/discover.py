@@ -13,7 +13,6 @@ def discover_streams(config):
     streams = []
 
     conn = client.connection(config)
-    prefix = format(config.get("user_dir", "./"))
 
     tables = config['tables']
     for table_spec in tables:

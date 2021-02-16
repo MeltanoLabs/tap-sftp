@@ -1,6 +1,6 @@
 import re
 
-from . import csv
+from . import csv_handler
 
 SDC_SOURCE_FILE_COLUMN = "_sdc_source_file"
 SDC_SOURCE_LINENO_COLUMN = "_sdc_source_lineno"
@@ -18,7 +18,7 @@ def get_schema_for_table(conn, table_spec, config):
         **generate_schema(samples, table_spec),
         SDC_SOURCE_FILE_COLUMN: {'type': 'string'},
         SDC_SOURCE_LINENO_COLUMN: {'type': 'integer'},
-        csv.SDC_EXTRA_COLUMN: {'type': 'array', 'items': {'type': 'string'}},
+        csv_handler.SDC_EXTRA_COLUMN: {'type': 'array', 'items': {'type': 'string'}},
     }
 
     return {
@@ -41,14 +41,14 @@ def sample_file(conn, table_spec, f, sample_rate, max_records, config):
             'delimiter': table_spec['delimiter'],
             'file_name': f['filepath']}
 
-    readers = csv.get_row_iterators(file_handle, options=opts, infer_compression=True)
+    readers = csv_handler.get_row_iterators(file_handle, options=opts, infer_compression=True)
 
     for reader in readers:
         current_row = 0
         for row in reader:
             if (current_row % sample_rate) == 0:
-                if row.get(csv.SDC_EXTRA_COLUMN):
-                    row.pop(csv.SDC_EXTRA_COLUMN)
+                if row.get(csv_handler.SDC_EXTRA_COLUMN):
+                    row.pop(csv_handler.SDC_EXTRA_COLUMN)
                 samples.append(row)
 
             current_row += 1
@@ -118,10 +118,15 @@ def infer(datum):
     return 'string'
 
 
-def count_sample(sample, counts, table_spec):
+def count_sample(sample, type_summary, table_spec):
+    """
+        Generates a summary dict of each column and its inferred types
+
+        {'Column1': {'string': 10}, 'Column2': {'integer': 10}}
+    """
     for key, value in sample.items():
-        if key not in counts:
-            counts[key] = {}
+        if key not in type_summary:
+            type_summary[key] = {}
 
         date_overrides = table_spec.get('date_overrides', [])
         if key in date_overrides:
@@ -130,12 +135,12 @@ def count_sample(sample, counts, table_spec):
             datatype = infer(value)
 
         if datatype is not None:
-            counts[key][datatype] = counts[key].get(datatype, 0) + 1
+            type_summary[key][datatype] = type_summary[key].get(datatype, 0) + 1
 
-    return counts
+    return type_summary
 
 
-def pick_datatype(counts):
+def pick_datatype(type_count):
     """
     If the underlying records are ONLY of type `integer`, `number`,
     or `date-time`, then return that datatype.
@@ -147,34 +152,34 @@ def pick_datatype(counts):
     """
     to_return = 'string'
 
-    if counts.get('date-time', 0) > 0:
+    if type_count.get('date-time', 0) > 0:
         return 'date-time'
 
-    if len(counts) == 1:
-        if counts.get('integer', 0) > 0:
+    if len(type_count) == 1:
+        if type_count.get('integer', 0) > 0:
             to_return = 'integer'
-        elif counts.get('number', 0) > 0:
+        elif type_count.get('number', 0) > 0:
             to_return = 'number'
 
-    elif(len(counts) == 2 and
-         counts.get('integer', 0) > 0 and
-         counts.get('number', 0) > 0):
+    elif(len(type_count) == 2 and
+         type_count.get('integer', 0) > 0 and
+         type_count.get('number', 0) > 0):
         to_return = 'number'
 
     return to_return
 
 
 def generate_schema(samples, table_spec):
-    counts = {}
+    type_summary = {}
     for sample in samples:
-        # {'name' : { 'string' : 45}}
-        counts = count_sample(sample, counts, table_spec)
+        type_summary = count_sample(sample, type_summary, table_spec)
 
-    for key, value in counts.items():
+    schema = {}
+    for key, value in type_summary.items():
         datatype = pick_datatype(value)
 
         if datatype == 'date-time':
-            counts[key] = {
+            schema[key] = {
                 'anyOf': [
                     {'type': ['null', 'string'], 'format': 'date-time'},
                     {'type': ['null', 'string']}
@@ -184,8 +189,8 @@ def generate_schema(samples, table_spec):
             types = ['null', datatype]
             if datatype != 'string':
                 types.append('string')
-            counts[key] = {
+            schema[key] = {
                 'type': types,
             }
 
-    return counts
+    return schema

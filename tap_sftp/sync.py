@@ -5,7 +5,7 @@ from singer import Transformer, metadata, utils
 
 from tap_sftp import client, stats
 from tap_sftp.aws_ssm import AWS_SSM
-from tap_sftp.singer_encodings import compression, csv
+from tap_sftp.singer_encodings import compression, csv_handler
 
 LOGGER = singer.get_logger()
 
@@ -63,7 +63,7 @@ def sync_file(conn, f, stream, table_spec, config):
             'delimiter': table_spec['delimiter'],
             'file_name': f['filepath']}
 
-    readers = csv.get_row_iterators(file_handle, options=opts, infer_compression=True)
+    readers = csv_handler.get_row_iterators(file_handle, options=opts, infer_compression=True)
 
     records_synced = 0
 
