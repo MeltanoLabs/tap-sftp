@@ -22,7 +22,7 @@ class SFTPConnection():
         self.host = host
         self.username = username
         self.password = password
-        self.port = int(port) or 22
+        self.port = int(port or 22)
         self.__active_connection = False
         self.decrypted_file = None
         self.key = None
