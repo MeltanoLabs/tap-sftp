@@ -1,5 +1,7 @@
-from tap_sftp.decrypt import gpg_decrypt
 from unittest.mock import patch
+
+from tap_sftp.decrypt import gpg_decrypt
+from tests.configuration.fixtures import get_sample_file_path
 
 
 class MockGPG:
@@ -17,13 +19,11 @@ class MockGPG:
 def test_decrypt(patch_gpg):
     gpg = MockGPG()
     patch_gpg.return_value = gpg
-    file_obj = ''
     output_path = '/tmp/path'
-    sftp_file_path = '/Export/sftp_dir/file_name.txt.gpg'
     key = ''
     gnupghome = ''
     passphrase = ''
-    decrypted_path = gpg_decrypt(file_obj, output_path, sftp_file_path, key, gnupghome, passphrase)
-    assert decrypted_path == '/tmp/path/file_name.txt'
+    decrypted_path = gpg_decrypt(get_sample_file_path('fake_file.zip.gpg'), output_path, key, gnupghome, passphrase)
+    assert decrypted_path == '/tmp/path/fake_file.zip'
     assert gpg.import_cnt == 1
     assert gpg.decrypt_cnt == 1

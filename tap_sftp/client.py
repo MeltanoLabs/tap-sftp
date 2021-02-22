@@ -26,12 +26,29 @@ class SFTPConnection():
         self.__active_connection = False
         self.decrypted_file = None
         self.key = None
+        self.transport = None
+        self.__sftp = None
         if private_key_file:
             key_path = os.path.expanduser(private_key_file)
             self.key = paramiko.RSAKey.from_private_key_file(key_path)
 
     def handle_backoff(details):
         LOGGER.warn("SSH Connection closed unexpectedly. Waiting {wait} seconds and retrying...".format(**details))
+
+    def _is_active(self):
+        if self.__sftp:
+            # initialized connection but need to check if its active
+            active = True
+            try:
+                self.__sftp.get_channel().exec_command('pwd')
+            except SSHException:
+                # not connected
+                active = False
+        else:
+            # havent initialized connection yet
+            active = False
+
+        return active
 
     # If connection is snapped during connect flow, retry up to a
     # minute for SSH connection to succeed. 2^6 + 2^5 + ...
@@ -42,23 +59,30 @@ class SFTPConnection():
                           jitter=None,
                           factor=2)
     def __try_connect(self):
-        if not self.__active_connection:
-            try:
-                self.transport = paramiko.Transport((self.host, self.port))
-                self.transport.use_compression(True)
-                self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=self.key)
-                self.sftp = paramiko.SFTPClient.from_transport(self.transport)
-            except (AuthenticationException, SSHException) as ex:
-                self.transport.close()
-                self.transport = paramiko.Transport((self.host, self.port))
-                self.transport.use_compression(True)
-                self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=None)
-                self.sftp = paramiko.SFTPClient.from_transport(self.transport)
-            self.__active_connection = True
+        if self._is_active():
+            # if we already have an active connection then we have nothing to do
+            LOGGER.info(f'Reusing connection {self.transport.is_active()}')
+            return
+
+        try:
+            LOGGER.info('Creating new connection to SFTP...')
+            self.transport = paramiko.Transport((self.host, self.port))
+            self.transport.use_compression(True)
+            self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=self.key)
+            self.__sftp = paramiko.SFTPClient.from_transport(self.transport)
+            LOGGER.info('Connection successful')
+        except (AuthenticationException, SSHException) as ex:
+            self.transport.close()
+            self.transport = paramiko.Transport((self.host, self.port))
+            self.transport.use_compression(True)
+            self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=None)
+            self.__sftp = paramiko.SFTPClient.from_transport(self.transport)
+        self.__active_connection = True
 
     @property
     def sftp(self):
         self.__try_connect()
+        LOGGER.info(f'Returning sftp conn...{self.__sftp} {self.transport.is_active()}')
         return self.__sftp
 
     @sftp.setter

@@ -1,12 +1,14 @@
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import pytest
 from tests.configuration.fixtures import get_sample_file_path, sftp_client
+from datetime import datetime
 
 
 @patch('tap_sftp.client.SFTPConnection.sftp')
-def test_get_file_handle(patch_sftp, sftp_client):
-    sftp_client.get_file_handle({'filepath': ''})
+@patch('tempfile.TemporaryDirectory.__enter__', return_value=get_sample_file_path(''))
+def test_get_file_handle(patch_temp, patch_sftp, sftp_client):
+    sftp_client.get_file_handle({'filepath': '/fake_file.txt'})
 
 
 @patch('tap_sftp.decrypt.gpg_decrypt')
