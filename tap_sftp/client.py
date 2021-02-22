@@ -158,28 +158,30 @@ class SFTPConnection():
 
     def get_file_handle(self, f, decryption_configs=None):
         """ Takes a file dict {"filepath": "...", "last_modified": "..."} and returns a handle to the file. """
-        sftp_file_path = f["filepath"]
-        if decryption_configs:
-            # decrypt to a temp file, then read it back in as the new file object
-            LOGGER.info(f'Decrypting file: {sftp_file_path}')
-            file_obj = self.sftp.open(sftp_file_path, 'rb')
-            with tempfile.TemporaryDirectory() as tmpdirname:
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            sftp_file_path = f["filepath"]
+            local_path = f'{tmpdirname}/{os.path.basename(sftp_file_path)}'
+            if decryption_configs:
+                LOGGER.info(f'Decrypting file: {sftp_file_path}')
+                # Getting sftp file to local, then reading it is much faster than reading it directly from the SFTP
+                self.sftp.get(sftp_file_path, local_path)
                 decrypted_path = decrypt.gpg_decrypt(
-                    file_obj,
+                    local_path,
                     tmpdirname,
-                    sftp_file_path,
                     decryption_configs.get('key'),
                     decryption_configs.get('gnupghome'),
                     decryption_configs.get('passphrase')
                 )
+                LOGGER.info(f'Decrypting file complete')
                 try:
                     self.decrypted_file = open(decrypted_path, 'rb')
                 except FileNotFoundError:
                     raise Exception(f'Decryption of file failed: {sftp_file_path}')
 
                 return self.decrypted_file, decrypted_path
-        else:
-            return self.sftp.open(sftp_file_path, 'rb')
+            else:
+                self.sftp.get(sftp_file_path, local_path)
+                return open(local_path, 'rb')
 
     def get_files_matching_pattern(self, files, pattern):
         """ Takes a file dict {"filepath": "...", "last_modified": "..."} and a regex pattern string, and returns

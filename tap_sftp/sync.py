@@ -82,6 +82,8 @@ def sync_file(conn, f, stream, table_spec, config):
 
                 singer.write_record(stream.tap_stream_id, to_write)
                 records_synced += 1
+                if records_synced % 10000 == 0:
+                    LOGGER.info(f'Synced Record Count: {records_synced}')
 
     stats.add_file_data(table_spec, f['filepath'], f['last_modified'], records_synced)
 
