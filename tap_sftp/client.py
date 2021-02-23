@@ -33,37 +33,20 @@ class SFTPConnection():
             self.key = paramiko.RSAKey.from_private_key_file(key_path)
 
     def handle_backoff(details):
-        LOGGER.warn("SSH Connection closed unexpectedly. Waiting {wait} seconds and retrying...".format(**details))
-
-    def _is_active(self):
-        if self.__sftp:
-            # initialized connection but need to check if its active
-            active = True
-            try:
-                self.__sftp.get_channel().exec_command('pwd')
-            except SSHException:
-                # not connected
-                active = False
-        else:
-            # havent initialized connection yet
-            active = False
-
-        return active
+        LOGGER.warn(
+            "SSH Connection closed unexpectedly. Waiting {wait} seconds and retrying...".format(**details)
+        )
 
     # If connection is snapped during connect flow, retry up to a
     # minute for SSH connection to succeed. 2^6 + 2^5 + ...
-    @backoff.on_exception(backoff.expo,
-                          (EOFError),
-                          max_tries=6,
-                          on_backoff=handle_backoff,
-                          jitter=None,
-                          factor=2)
-    def __try_connect(self):
-        if self._is_active():
-            # if we already have an active connection then we have nothing to do
-            LOGGER.info(f'Reusing connection {self.transport.is_active()}')
-            return
-
+    @backoff.on_exception(
+        backoff.expo,
+        (EOFError),
+        max_tries=3,
+        on_backoff=handle_backoff,
+        jitter=None,
+        factor=2)
+    def __connect(self):
         try:
             LOGGER.info('Creating new connection to SFTP...')
             self.transport = paramiko.Transport((self.host, self.port))
@@ -81,8 +64,7 @@ class SFTPConnection():
 
     @property
     def sftp(self):
-        self.__try_connect()
-        LOGGER.info(f'Returning sftp conn...{self.__sftp} {self.transport.is_active()}')
+        self.__connect()
         return self.__sftp
 
     @sftp.setter
@@ -201,7 +183,6 @@ class SFTPConnection():
                     self.decrypted_file = open(decrypted_path, 'rb')
                 except FileNotFoundError:
                     raise Exception(f'Decryption of file failed: {sftp_file_path}')
-
                 return self.decrypted_file, decrypted_path
             else:
                 self.sftp.get(sftp_file_path, local_path)

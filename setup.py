@@ -16,7 +16,7 @@ setup(
     install_requires=requirements,
     entry_points="""
     [console_scripts]
-    tap-sftp=tap_sftp.tap_sftp:main
+    tap-sftp=tap_sftp.tap:main
     """,
     packages=["tap_sftp", "tap_sftp.singer_encodings"]
 )
