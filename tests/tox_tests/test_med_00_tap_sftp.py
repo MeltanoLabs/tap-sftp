@@ -1,10 +1,10 @@
 from unittest.mock import patch
 
-from tap_sftp.tap_sftp import do_discover, do_sync
+from tap_sftp.tap import do_discover, do_sync
 from tests.configuration.fixtures import get_catalog, get_table_spec
 
 
-@patch('tap_sftp.tap_sftp.sync_stream')
+@patch('tap_sftp.tap.sync_stream')
 def test_sync(patch_sync_stream):
     catalog = get_catalog()
     config = {
@@ -17,7 +17,7 @@ def test_sync(patch_sync_stream):
     patch_sync_stream.assert_called()
 
 
-@patch('tap_sftp.tap_sftp.discover_streams')
+@patch('tap_sftp.tap.discover_streams')
 def test_discover(patch_discover_stream):
     patch_discover_stream.return_value = {'fake_stream': ''}
     config = {
