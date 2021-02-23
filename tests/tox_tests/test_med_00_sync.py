@@ -10,6 +10,9 @@ from tests.configuration.fixtures import (get_catalog, get_sample_file_path,
 
 @patch('tap_sftp.client.connection')
 def test_sync_stream_no_tables_selected(patch_conn):
+    """
+        Only sync files that are selected in the config
+    """
     config = {'start_date': '2021-01-01', 'tables': []}
     stream = get_catalog().streams[0]
     result = sync_stream(config, {}, stream)
@@ -37,6 +40,9 @@ def test_sync_stream(patch_files, patch_sync_file):
 @patch('singer.write_record')
 @patch('tap_sftp.client.SFTPConnection.get_file_handle')
 def test_sync_file(mock_file_handle, patch_write, sftp_client):
+    """
+        Mock the file handle so it reads our test file. Then assert the write_record data is correct.
+    """
     file_conf = {'filepath': 'fake_file.txt', 'last_modified': ''}
     with open(get_sample_file_path('fake_file.txt'), 'rb') as f:
         mock_file_handle.return_value = f
@@ -51,16 +57,23 @@ def test_sync_file(mock_file_handle, patch_write, sftp_client):
 
 
 @patch('singer.write_record')
+@patch('tap_sftp.aws_ssm.AWS_SSM.get_decryption_key')
 @patch('tap_sftp.client.SFTPConnection.get_file_handle')
-def test_sync_file_decrypt(mock_file_handle, patch_write, sftp_client):
+def test_sync_file_decrypt(mock_file_handle, patch_aws, patch_write, sftp_client):
+    """
+        Call with decrypt option, mock the file handle so it reads our test file. Then assert the
+        write_record data is correct and the decrypted name is the new filepath.
+    """
     file_conf = {'filepath': 'fake_file.txt', 'last_modified': ''}
     with open(get_sample_file_path('fake_file.txt'), 'rb') as f:
-        mock_file_handle.return_value = f
+        mock_file_handle.return_value = f, 'new_file_name.txt'
         stream = get_catalog().streams[0]
-        config = {}
+        config = {'decryption_configs': {'': ''}}
         synced_records = sync_file(sftp_client, file_conf, stream, get_table_spec(), config)
         assert synced_records == 1
+        patch_aws.assert_called()
         patch_write.assert_called_with(
             'fake_file',
             {'Col1': 'data1', 'Col2': 'data2'}
         )
+        assert file_conf['filepath'] == 'new_file_name.txt'

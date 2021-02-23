@@ -17,6 +17,10 @@ class MockGPG:
 
 @patch('tap_sftp.decrypt.gnupg.GPG')
 def test_decrypt(patch_gpg):
+    """
+        Using the custom mock we assert that keys were imported, file was decrypted, and
+        gpg was removed from file name
+    """
     gpg = MockGPG()
     patch_gpg.return_value = gpg
     output_path = '/tmp/path'
