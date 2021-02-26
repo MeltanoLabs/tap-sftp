@@ -1,8 +1,8 @@
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
 from tests.configuration.fixtures import get_sample_file_path, sftp_client
-from datetime import datetime
 
 
 @patch('tempfile.TemporaryDirectory.__enter__', return_value=get_sample_file_path(''))

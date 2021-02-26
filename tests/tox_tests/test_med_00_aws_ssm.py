@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from tap_sftp.aws_ssm import AWS_SSM
 
 

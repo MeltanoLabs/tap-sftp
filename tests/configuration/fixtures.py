@@ -1,29 +1,16 @@
 from pathlib import Path
-from unittest.mock import Mock, patch, PropertyMock
+from unittest.mock import patch
 
 from pytest import fixture
 from singer.catalog import Catalog
 from tap_sftp.client import connection
 
 
-class MockSFTPClient:
-
-    def __init__(self, *args, **kwargs):
-        pass
-    def get(self, *args, **kwargs):
-        pass
-    def close(self, *args, **kwargs):
-        pass
-
 @fixture
 def sftp_client(monkeypatch):
     # overwrite the client so we never actually try to connect to an sftp
-    monkeypatch.setattr('paramiko.SFTPClient.from_transport', MockSFTPClient)
-    config = {
-        'host': '',
-        'username': ''
-    }
-    return connection(config)
+    with patch('paramiko.SFTPClient.from_transport'), patch('paramiko.Transport'):
+        yield connection({'host': '', 'username': ''})
 
 def get_sample_file_path(file_name):
     path = Path(__file__).parent.absolute()

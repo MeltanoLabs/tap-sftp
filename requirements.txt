@@ -1,7 +1,6 @@
 singer-python==5.9.0
 paramiko==2.6.0
 backoff==1.8.0
-singer-encodings==0.0.8
 terminaltables==3.1.0
 python-gnupg==0.4.6
 boto3==1.17.6

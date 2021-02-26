@@ -1,8 +1,6 @@
-import io
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-import pytest
 from tap_sftp.sync import sync_file, sync_stream
 from tests.configuration.fixtures import (get_catalog, get_sample_file_path,
                                           get_table_spec, sftp_client)
