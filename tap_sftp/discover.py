@@ -1,5 +1,3 @@
-import json
-
 import singer
 from singer import metadata
 

@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from singer.catalog import Catalog
 from tap_sftp.discover import discover_streams
 from tests.configuration.fixtures import get_sample_file_path, get_table_spec
 
