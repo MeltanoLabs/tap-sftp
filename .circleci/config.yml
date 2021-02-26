@@ -1,50 +1,50 @@
-version: 2
+## CircleCI configuration - see https://circleci.com/docs/2.0/configuration-reference/
+version: 2.1
+
+anchors:
+  container-config: &container-config
+      docker:
+        - image: circleci/python:3.7.2
+
+  only-master: &only-master
+    filters:
+      branches:
+        only: master
+
 jobs:
-  build:
-    docker:
-      - image: 218546966473.dkr.ecr.us-east-1.amazonaws.com/circle-ci:tap-tester
-      - image: atmoz/sftp:debian
-        command: "test_user:Passw0rd!:::upload"
+  test:
+    <<: *container-config
     steps:
       - checkout
-      - add_ssh_keys
       - run:
-          name: 'Setup virtual env'
-          command: |
-            virtualenv -p python3 /usr/local/share/virtualenvs/tap-sftp
-            source /usr/local/share/virtualenvs/tap-sftp/bin/activate
-            pip install .[dev]
-      # - run:
-      #     name: 'pylint'
-      #     command: |
-      #       source /usr/local/share/virtualenvs/tap-sftp/bin/activate
-      #       make test
+          name: Install Tox
+          command: sudo pip install tox
       - run:
-          name: 'Tap Tester'
+          name: Run Tox Tests
+          command: tox
+  deploy-to-pypi:
+    description: Deploy the package to PYPI
+    <<: *container-config
+    steps:
+      - checkout
+      - run: 
+          name: install s3pypi
+          command: sudo pip install s3pypi
+      - run:
+          name: Deploy services
           command: |
-            aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/sandbox tap-tester.env
-            source tap-tester.env
-            source /usr/local/share/virtualenvs/tap-tester/bin/activate
-            cd /root/project/
-            run-a-test --tap=tap-sftp \
-                       --target=target-stitch \
-                       --orchestrator=stitch-orchestrator \
-                       --token="$DEV_TOKEN" \
-                       --client-id=50 \
-                       tap_tester.suites.sftp
-
+            s3pypi --bucket deg-shared-services-pypi-us-east-1 --private --secret ${S3PYPI_SECRET}
+          
 workflows:
-  version: 2
-  commit:
-    jobs:
-      - build
-  build_daily:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - build
+    version: 2
+    test-deploy:
+      jobs:
+        - test:
+            name: test
+            context: deg-testing
+
+        - deploy-to-pypi:
+            name: deploy package to pypi
+            <<: *only-master
+            context: aws-data-shared-services
+            requires: [test]
