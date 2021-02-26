@@ -34,6 +34,7 @@ def add_file_data(table_spec, filepath, last_modified, row_count):
             'row_count': row_count
         }
 
+
 def initialize_table_stats(table_spec):
     global STATS
     STATS[table_spec['table_name']] = {

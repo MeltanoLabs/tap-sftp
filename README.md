@@ -34,11 +34,27 @@ $ pip install .
         "port": 22,
         "username": "YOUR_USER",
         "password": "YOUR_PASS",
-        "private_key_file": null,
-        "tables": "[{\"table_name\":\"MyExportData\",\"search_prefix\":\"\/Export\",\"search_pattern\":\"MyExportData.csv\",\"key_properties\":[],\"delimiter\":\",\"}]",
-        "start_date": "2021-01-28"
+        "tables": [
+            {
+                "table_name": "MyExportData",
+                "search_prefix": "\/Export\/SubFolder",
+                "search_pattern": "MyExportData.*\\.zip.gpg$",
+                "key_properties": [],
+                "delimiter": ","
+            }
+        ],
+        "start_date":"2021-01-28",
+        "decryption_configs": {
+            "SSM_key_name": "SSM_PARAMETER_KEY_NAME",
+            "gnupghome": "/your/dir/.gnupg",
+            "passphrase": "your_gpg_passphrase"
+        },
+        "private_key_file": "Optional_Path",
     }
    ```
+   If using the decryption feature you must pass the configs shown above, including the AWS SSM parameter name for where the decryption private key is stored. In order to retrieve this parameter the runtime environment must have access to SSM through IAM environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN).
+
+   The private_key_file is optional.
 
 ## Discovery mode:
 
