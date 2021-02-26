@@ -9,7 +9,7 @@ from tests.configuration.fixtures import (get_catalog, get_sample_file_path,
 
 
 @patch('tap_sftp.client.connection')
-def test_sync_stream_no_tables_selected(patch_conn):
+def test_sync_stream_no_tables_selected(patch_conn, sftp_client):
     """
         Only sync files that are selected in the config
     """
@@ -21,7 +21,10 @@ def test_sync_stream_no_tables_selected(patch_conn):
 
 @patch('tap_sftp.sync.sync_file', return_value=1)
 @patch('tap_sftp.client.SFTPConnection.get_files_by_prefix')
-def test_sync_stream(patch_files, patch_sync_file):
+def test_sync_stream(patch_files, patch_sync_file, sftp_client):
+    """
+        Mock out the files returned so that the sync_stream reads our local test files. Assert we processed 1 record
+    """
     patch_files.return_value = [
         {'filepath': '/Export/fake_file.txt', 'last_modified': datetime.now(timezone.utc)}
     ]
@@ -47,8 +50,8 @@ def test_sync_file(mock_file_handle, patch_write, sftp_client):
     with open(get_sample_file_path('fake_file.txt'), 'rb') as f:
         mock_file_handle.return_value = f
         stream = get_catalog().streams[0]
-        config = {}
-        synced_records = sync_file(sftp_client, file_conf, stream, get_table_spec(), config)
+        config = {'host': '', 'username': ''}
+        synced_records = sync_file(file_conf, stream, get_table_spec(), config)
         assert synced_records == 1
         patch_write.assert_called_with(
             'fake_file',
@@ -68,8 +71,8 @@ def test_sync_file_decrypt(mock_file_handle, patch_aws, patch_write, sftp_client
     with open(get_sample_file_path('fake_file.txt'), 'rb') as f:
         mock_file_handle.return_value = f, 'new_file_name.txt'
         stream = get_catalog().streams[0]
-        config = {'decryption_configs': {'': ''}}
-        synced_records = sync_file(sftp_client, file_conf, stream, get_table_spec(), config)
+        config = {'host': '', 'username': '', 'decryption_configs': {'': ''}}
+        synced_records = sync_file(file_conf, stream, get_table_spec(), config)
         assert synced_records == 1
         patch_aws.assert_called()
         patch_write.assert_called_with(

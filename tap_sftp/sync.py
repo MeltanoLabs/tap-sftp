@@ -18,7 +18,7 @@ def sync_stream(config, state, stream):
     LOGGER.info('Syncing table "%s".', table_name)
     LOGGER.info('Getting files modified since %s.', modified_since)
 
-    conn = client.connection(config)
+    sftp_client = client.connection(config)
     table_spec = [table_config for table_config in config["tables"] if table_config["table_name"] == table_name]
     if len(table_spec) == 0:
         LOGGER.info("No table configuration found for '%s', skipping stream", table_name)
@@ -28,9 +28,12 @@ def sync_stream(config, state, stream):
         return 0
     table_spec = table_spec[0]
 
-    files = conn.get_files(table_spec["search_prefix"],
-                           table_spec["search_pattern"],
-                           modified_since)
+    files = sftp_client.get_files(
+        table_spec["search_prefix"],
+        table_spec["search_pattern"],
+        modified_since
+    )
+    sftp_client.close()
 
     LOGGER.info('Found %s files to be synced.', len(files))
 
@@ -38,9 +41,9 @@ def sync_stream(config, state, stream):
     if not files:
         return records_streamed
 
-    for f in files:
-        records_streamed += sync_file(conn, f, stream, table_spec, config)
-        state = singer.write_bookmark(state, table_name, 'modified_since', f['last_modified'].isoformat())
+    for sftp_file in files:
+        records_streamed += sync_file(sftp_file, stream, table_spec, config)
+        state = singer.write_bookmark(state, table_name, 'modified_since', sftp_file['last_modified'].isoformat())
         singer.write_state(state)
 
     LOGGER.info('Wrote %s records for table "%s".', records_streamed, table_name)
@@ -48,30 +51,32 @@ def sync_stream(config, state, stream):
     return records_streamed
 
 
-def sync_file(conn, f, stream, table_spec, config):
-    LOGGER.info('Syncing file "%s".', f["filepath"])
+def sync_file(sftp_file_spec, stream, table_spec, config):
+    LOGGER.info('Syncing file "%s".', sftp_file_spec["filepath"])
+    sftp_client = client.connection(config)
     decryption_configs = config.get('decryption_configs')
     if decryption_configs:
         decryption_configs['key'] = AWS_SSM.get_decryption_key(decryption_configs.get('SSM_key_name'))
-        file_handle, decrypted_name = conn.get_file_handle(f, decryption_configs)
-        f['filepath'] = decrypted_name
+        file_handle, decrypted_name = sftp_client.get_file_handle(sftp_file_spec, decryption_configs)
+        sftp_file_spec['filepath'] = decrypted_name
     else:
-        file_handle = conn.get_file_handle(f)
+        file_handle = sftp_client.get_file_handle(sftp_file_spec)
 
     # Add file_name to opts and flag infer_compression to support gzipped files
     opts = {'key_properties': table_spec['key_properties'],
             'delimiter': table_spec['delimiter'],
-            'file_name': f['filepath']}
+            'file_name': sftp_file_spec['filepath']}
 
     readers = csv_handler.get_row_iterators(file_handle, options=opts, infer_compression=True)
 
     records_synced = 0
 
     for reader in readers:
+        LOGGER.info('Synced Record Count: 0')
         with Transformer() as transformer:
             for row in reader:
                 custom_columns = {
-                    '_sdc_source_file': f["filepath"],
+                    '_sdc_source_file': sftp_file_spec["filepath"],
 
                     # index zero, +1 for header row
                     '_sdc_source_lineno': records_synced + 2
@@ -82,9 +87,11 @@ def sync_file(conn, f, stream, table_spec, config):
 
                 singer.write_record(stream.tap_stream_id, to_write)
                 records_synced += 1
-                if records_synced % 10000 == 0:
+                if records_synced % 100000 == 0:
                     LOGGER.info(f'Synced Record Count: {records_synced}')
+        LOGGER.info(f'Sync Complete - Records Synced: {records_synced}')
 
-    stats.add_file_data(table_spec, f['filepath'], f['last_modified'], records_synced)
+    stats.add_file_data(table_spec, sftp_file_spec['filepath'], sftp_file_spec['last_modified'], records_synced)
+    sftp_client.close()
 
     return records_synced

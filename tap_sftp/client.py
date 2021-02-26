@@ -17,13 +17,18 @@ from tap_sftp import decrypt
 LOGGER = singer.get_logger()
 
 
+def handle_backoff(details):
+    LOGGER.warn(
+        "SSH Connection closed unexpectedly. Waiting {wait} seconds and retrying...".format(**details)
+    )
+
+
 class SFTPConnection():
     def __init__(self, host, username, password=None, private_key_file=None, port=None):
         self.host = host
         self.username = username
         self.password = password
         self.port = int(port or 22)
-        self.__active_connection = False
         self.decrypted_file = None
         self.key = None
         self.transport = None
@@ -32,17 +37,12 @@ class SFTPConnection():
             key_path = os.path.expanduser(private_key_file)
             self.key = paramiko.RSAKey.from_private_key_file(key_path)
 
-    def handle_backoff(details):
-        LOGGER.warn(
-            "SSH Connection closed unexpectedly. Waiting {wait} seconds and retrying...".format(**details)
-        )
-
     # If connection is snapped during connect flow, retry up to a
     # minute for SSH connection to succeed. 2^6 + 2^5 + ...
     @backoff.on_exception(
         backoff.expo,
         (EOFError),
-        max_tries=3,
+        max_tries=6,
         on_backoff=handle_backoff,
         jitter=None,
         factor=2)
@@ -60,7 +60,6 @@ class SFTPConnection():
             self.transport.use_compression(True)
             self.transport.connect(username=self.username, password=self.password, hostkey=None, pkey=None)
             self.__sftp = paramiko.SFTPClient.from_transport(self.transport)
-        self.__active_connection = True
 
     @property
     def sftp(self):
@@ -71,23 +70,9 @@ class SFTPConnection():
     def sftp(self, sftp):
         self.__sftp = sftp
 
-    def __enter__(self):
-        self.__try_connect()
-        return self
-
-    def __del__(self):
-        """ Clean up the socket when this class gets garbage collected. """
-        self.close()
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """ Clean up the socket when this class gets garbage collected. """
-        self.close()
-
     def close(self):
-        if self.__active_connection:
-            self.sftp.close()
-            self.transport.close()
-            self.__active_connection = False
+        self.sftp.close()
+        self.transport.close()
         # decrypted files require an open file object, so close it
         if self.decrypted_file:
             self.decrypted_file.close()

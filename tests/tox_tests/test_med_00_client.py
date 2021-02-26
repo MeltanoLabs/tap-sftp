@@ -5,9 +5,8 @@ from tests.configuration.fixtures import get_sample_file_path, sftp_client
 from datetime import datetime
 
 
-@patch('tap_sftp.client.SFTPConnection.sftp')
 @patch('tempfile.TemporaryDirectory.__enter__', return_value=get_sample_file_path(''))
-def test_get_file_handle(patch_temp, patch_sftp, sftp_client):
+def test_get_file_handle(patch_temp, sftp_client):
     """
         Patch the temp file location and the sftp conn. Confirms no errors reading the file after sftp get 
     """
@@ -15,8 +14,7 @@ def test_get_file_handle(patch_temp, patch_sftp, sftp_client):
 
 
 @patch('tap_sftp.decrypt.gpg_decrypt', return_value=get_sample_file_path('fake_file.txt'))
-@patch('tap_sftp.client.SFTPConnection.sftp')
-def test_get_file_handle_decrypt(patch_sftp, patch_decrypt, sftp_client):
+def test_get_file_handle_decrypt(patch_decrypt, sftp_client):
     """
         File handle of gpg file calls the decrypt method
     """
@@ -24,8 +22,7 @@ def test_get_file_handle_decrypt(patch_sftp, patch_decrypt, sftp_client):
     patch_decrypt.assert_called()
 
 @patch('tap_sftp.decrypt.gpg_decrypt')
-@patch('tap_sftp.client.SFTPConnection.sftp')
-def test_get_file_handle_decrypt_failed(patch_sftp, patch_decrypt, sftp_client):
+def test_get_file_handle_decrypt_failed(patch_decrypt, sftp_client):
     """
         Exception is raised if decryption fails
     """
