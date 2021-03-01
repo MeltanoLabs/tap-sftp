@@ -22,7 +22,7 @@ def get_row_iterator(iterable, options=None):
     which can be used to yield CSV rows."""
     options = options or {}
 
-    file_stream = codecs.iterdecode(iterable, encoding='utf-8')
+    file_stream = codecs.iterdecode(iterable, encoding=options.get('encoding', 'utf-8'))
 
     # Replace any NULL bytes in the line given to the DictReader
     reader = csv.DictReader(

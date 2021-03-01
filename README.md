@@ -40,7 +40,8 @@ $ pip install .
                 "search_prefix": "\/Export\/SubFolder",
                 "search_pattern": "MyExportData.*\\.zip.gpg$",
                 "key_properties": [],
-                "delimiter": ","
+                "delimiter": ",",
+                "encoding": "utf-8"
             }
         ],
         "start_date":"2021-01-28",
