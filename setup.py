@@ -7,7 +7,7 @@ with open('requirements.txt', 'r') as fh:
 
 setup(
     name="tap-sftp",
-    version="2.0.0",
+    version="2.1.0",
     description="Singer.io tap for extracting data",
     author="Stitch",
     url="http://singer.io",
