@@ -1,9 +1,10 @@
 import codecs
 import csv
+import io
 import os
 
-from tap_sftp.singer_encodings import compression
 from tap_sftp import decrypt
+from tap_sftp.singer_encodings import compression
 
 SDC_EXTRA_COLUMN = "_sdc_extra"
 
@@ -22,11 +23,9 @@ def get_row_iterator(iterable, options=None):
     which can be used to yield CSV rows."""
     options = options or {}
 
-    file_stream = codecs.iterdecode(iterable, encoding=options.get('encoding', 'utf-8'))
-
     # Replace any NULL bytes in the line given to the DictReader
     reader = csv.DictReader(
-        (line.replace('\0', '') for line in file_stream),
+        io.TextIOWrapper(iterable, encoding=options.get('encoding', 'utf-8')),
         fieldnames=None,
         restkey=SDC_EXTRA_COLUMN,
         delimiter=options.get('delimiter', ',')
