@@ -1,5 +1,5 @@
 import re
-
+from tap_sftp.aws_ssm import AWS_SSM
 from . import csv_handler
 
 SDC_SOURCE_FILE_COLUMN = "_sdc_source_file"
@@ -31,6 +31,7 @@ def sample_file(conn, table_spec, f, sample_rate, max_records, config):
     samples = []
     decryption_configs = config.get('decryption_configs')
     if decryption_configs:
+        decryption_configs['key'] = AWS_SSM.get_decryption_key(decryption_configs.get('SSM_key_name'))
         file_handle, decrypted_name = conn.get_file_handle(f, decryption_configs)
         f['filepath'] = decrypted_name
     else:
