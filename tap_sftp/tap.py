@@ -4,6 +4,7 @@ import sys
 import singer
 from singer import metadata, utils
 from terminaltables import AsciiTable
+from tap_sftp import client, stats
 
 from tap_sftp.discover import discover_streams
 from tap_sftp.stats import STATS
@@ -32,6 +33,7 @@ def stream_is_selected(mdata):
 
 def do_sync(config, catalog, state):
     LOGGER.info('Starting sync.')
+    sftp_client = client.connection(config)
 
     for stream in catalog.streams:
         stream_name = stream.tap_stream_id
@@ -46,7 +48,7 @@ def do_sync(config, catalog, state):
         singer.write_schema(stream_name, stream.schema.to_dict(), key_properties)
 
         LOGGER.info("%s: Starting sync", stream_name)
-        counter_value = sync_stream(config, state, stream)
+        counter_value = sync_stream(config, state, stream, sftp_client)
         LOGGER.info("%s: Completed sync (%s rows)", stream_name, counter_value)
 
     headers = [['table_name',
@@ -69,6 +71,8 @@ def do_sync(config, catalog, state):
 
     data = headers + rows
     table = AsciiTable(data, title='Extraction Summary')
+
+    sftp_client.close()
     LOGGER.info("\n\n%s", table.table)
     LOGGER.info('Done syncing.')
 

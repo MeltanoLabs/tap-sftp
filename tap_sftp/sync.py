@@ -8,7 +8,7 @@ from tap_sftp.singer_encodings import csv_handler
 LOGGER = singer.get_logger()
 
 
-def sync_stream(config, state, stream):
+def sync_stream(config, state, stream, sftp_client):
     table_name = stream.tap_stream_id
     modified_since = utils.strptime_to_utc(singer.get_bookmark(state, table_name, 'modified_since') or
                                            config['start_date'])
@@ -16,7 +16,7 @@ def sync_stream(config, state, stream):
     LOGGER.info('Syncing table "%s".', table_name)
     LOGGER.info('Getting files modified since %s.', modified_since)
 
-    sftp_client = client.connection(config)
+    # sftp_client = client.connection(config)
     table_spec = [table_config for table_config in config["tables"] if table_config["table_name"] == table_name]
     if len(table_spec) == 0:
         LOGGER.info("No table configuration found for '%s', skipping stream", table_name)
@@ -31,7 +31,7 @@ def sync_stream(config, state, stream):
         table_spec["search_pattern"],
         modified_since
     )
-    sftp_client.close()
+    # sftp_client.close()
 
     LOGGER.info('Found %s files to be synced.', len(files))
 
@@ -40,7 +40,7 @@ def sync_stream(config, state, stream):
         return records_streamed
 
     for sftp_file in files:
-        records_streamed += sync_file(sftp_file, stream, table_spec, config)
+        records_streamed += sync_file(sftp_file, stream, table_spec, config, sftp_client)
         state = singer.write_bookmark(state, table_name, 'modified_since', sftp_file['last_modified'].isoformat())
         singer.write_state(state)
 
@@ -49,9 +49,9 @@ def sync_stream(config, state, stream):
     return records_streamed
 
 
-def sync_file(sftp_file_spec, stream, table_spec, config):
+def sync_file(sftp_file_spec, stream, table_spec, config, sftp_client):
     LOGGER.info('Syncing file "%s".', sftp_file_spec["filepath"])
-    sftp_client = client.connection(config)
+    # sftp_client = client.connection(config)
     decryption_configs = config.get('decryption_configs')
     if decryption_configs:
         decryption_configs['key'] = AWS_SSM.get_decryption_key(decryption_configs.get('SSM_key_name'))
@@ -91,6 +91,6 @@ def sync_file(sftp_file_spec, stream, table_spec, config):
         LOGGER.info(f'Sync Complete - Records Synced: {records_synced}')
 
     stats.add_file_data(table_spec, sftp_file_spec['filepath'], sftp_file_spec['last_modified'], records_synced)
-    sftp_client.close()
+    # sftp_client.close()
 
     return records_synced
