@@ -13,7 +13,7 @@ def test_sync_stream_no_tables_selected(patch_conn, sftp_client):
     """
     config = {'start_date': '2021-01-01', 'tables': []}
     stream = get_catalog().streams[0]
-    result = sync_stream(config, {}, stream)
+    result = sync_stream(config, {}, stream, sftp_client)
     assert result == 0
 
 
@@ -33,7 +33,7 @@ def test_sync_stream(patch_files, patch_sync_file, sftp_client):
         'tables': [get_table_spec()]
     }
     stream = get_catalog().streams[0]
-    result = sync_stream(config, {}, stream)
+    result = sync_stream(config, {}, stream, sftp_client)
     assert result == 1
     patch_sync_file.assert_called()
 
@@ -49,7 +49,7 @@ def test_sync_file(mock_file_handle, patch_write, sftp_client):
         mock_file_handle.return_value = f
         stream = get_catalog().streams[0]
         config = {'host': '', 'username': ''}
-        synced_records = sync_file(file_conf, stream, get_table_spec(), config)
+        synced_records = sync_file(file_conf, stream, get_table_spec(), config, sftp_client)
         assert synced_records == 1
         patch_write.assert_called_with(
             'fake_file',
@@ -70,7 +70,7 @@ def test_sync_file_decrypt(mock_file_handle, patch_aws, patch_write, sftp_client
         mock_file_handle.return_value = f, 'new_file_name.txt'
         stream = get_catalog().streams[0]
         config = {'host': '', 'username': '', 'decryption_configs': {'': ''}}
-        synced_records = sync_file(file_conf, stream, get_table_spec(), config)
+        synced_records = sync_file(file_conf, stream, get_table_spec(), config, sftp_client)
         assert synced_records == 1
         patch_aws.assert_called()
         patch_write.assert_called_with(

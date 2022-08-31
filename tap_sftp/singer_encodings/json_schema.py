@@ -163,9 +163,7 @@ def pick_datatype(type_count):
         elif type_count.get('number', 0) > 0:
             to_return = 'number'
 
-    elif(len(type_count) == 2 and
-         type_count.get('integer', 0) > 0 and
-         type_count.get('number', 0) > 0):
+    elif (len(type_count) == 2 and type_count.get('integer', 0) > 0 and type_count.get('number', 0) > 0):
         to_return = 'number'
 
     return to_return

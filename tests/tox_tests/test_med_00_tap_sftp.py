@@ -3,7 +3,6 @@ from unittest.mock import patch
 from tap_sftp.tap import do_discover, do_sync
 from tests.configuration.fixtures import get_catalog, get_table_spec
 
-
 @patch('tap_sftp.tap.sync_stream')
 def test_sync(patch_sync_stream):
     catalog = get_catalog()
