@@ -11,7 +11,7 @@ import pytz
 import singer
 from paramiko.ssh_exception import AuthenticationException, SSHException
 
-from tap_sftp import decrypt
+from tap_nicesftp import decrypt
 
 LOGGER = singer.get_logger()
 

@@ -1,5 +1,5 @@
 import re
-from tap_sftp.aws_ssm import AWS_SSM
+from tap_nicesftp.aws_ssm import AWS_SSM
 from . import csv_handler
 
 SDC_SOURCE_FILE_COLUMN = "_sdc_source_file"

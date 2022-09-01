@@ -4,11 +4,11 @@ import sys
 import singer
 from singer import metadata, utils
 from terminaltables import AsciiTable
-from tap_sftp import client, stats
+from tap_nicesftp import client, stats
 
-from tap_sftp.discover import discover_streams
-from tap_sftp.stats import STATS
-from tap_sftp.sync import sync_stream
+from tap_nicesftp.discover import discover_streams
+from tap_nicesftp.stats import STATS
+from tap_nicesftp.sync import sync_stream
 
 REQUIRED_CONFIG_KEYS = ["username", "port", "host", "tables", "start_date"]
 REQUIRED_DECRYPT_CONFIG_KEYS = ['SSM_key_name', 'gnupghome', 'passphrase']

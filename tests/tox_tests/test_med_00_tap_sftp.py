@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from tap_sftp.tap import do_discover, do_sync
+from tap_nicesftp.tap import do_discover, do_sync
 from tests.configuration.fixtures import get_catalog, get_table_spec
 
 # @patch('tap_sftp.tap.sync_stream')

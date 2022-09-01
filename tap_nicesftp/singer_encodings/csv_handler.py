@@ -3,8 +3,8 @@ import csv
 import io
 import os
 
-from tap_sftp import decrypt
-from tap_sftp.singer_encodings import compression
+from tap_nicesftp import decrypt
+from tap_nicesftp.singer_encodings import compression
 
 SDC_EXTRA_COLUMN = "_sdc_extra"
 
