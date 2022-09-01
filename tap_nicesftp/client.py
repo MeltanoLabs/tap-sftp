@@ -31,10 +31,14 @@ class SFTPConnection():
         self.decrypted_file = None
         self.key = None
         self.transport = None
-        self.__sftp = None
+        
         if private_key_file:
             key_path = os.path.expanduser(private_key_file)
             self.key = paramiko.RSAKey.from_private_key_file(key_path)
+        #self.__sftp = None
+
+        self.__sftp = self.__connect()
+
 
     # If connection is snapped during connect flow, retry up to a
     # minute for SSH connection to succeed. 2^6 + 2^5 + ...
@@ -62,7 +66,7 @@ class SFTPConnection():
 
     @property
     def sftp(self):
-        self.__connect()
+        # self.__connect()
         return self.__sftp
 
     @sftp.setter

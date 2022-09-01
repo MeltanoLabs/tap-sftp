@@ -16,7 +16,7 @@ def sync_stream(config, state, stream, sftp_client):
     LOGGER.info('Syncing table "%s".', table_name)
     LOGGER.info('Getting files modified since %s.', modified_since)
 
-    # sftp_client = client.connection(config)
+
     table_spec = [table_config for table_config in config["tables"] if table_config["table_name"] == table_name]
     if len(table_spec) == 0:
         LOGGER.info("No table configuration found for '%s', skipping stream", table_name)
@@ -51,7 +51,6 @@ def sync_stream(config, state, stream, sftp_client):
 
 def sync_file(sftp_file_spec, stream, table_spec, config, sftp_client):
     LOGGER.info('Syncing file "%s".', sftp_file_spec["filepath"])
-    # sftp_client = client.connection(config)
     decryption_configs = config.get('decryption_configs')
     if decryption_configs:
         decryption_configs['key'] = AWS_SSM.get_decryption_key(decryption_configs.get('SSM_key_name'))
