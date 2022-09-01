@@ -36,8 +36,9 @@ class SFTPConnection():
             key_path = os.path.expanduser(private_key_file)
             self.key = paramiko.RSAKey.from_private_key_file(key_path)
         #self.__sftp = None
-
-        self.__sftp = self.__connect()
+        self.__connect()
+        # return self.__sftp
+        # self.sftp = self.__connect()
 
 
     # If connection is snapped during connect flow, retry up to a
