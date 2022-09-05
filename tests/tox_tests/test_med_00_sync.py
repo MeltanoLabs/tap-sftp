@@ -1,19 +1,18 @@
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from tap_nicesftp.sync import sync_file, sync_stream
+from tap_sftp.sync import sync_file, sync_stream
 from tests.configuration.fixtures import (get_catalog, get_sample_file_path,
                                           get_table_spec, sftp_client)
 
-
-@patch('tap_sftp.client.connection')
-def test_sync_stream_no_tables_selected(patch_conn, sftp_client):
+@patch('tap_sftp.client')
+def test_sync_stream_no_tables_selected(mock_client):
     """
         Only sync files that are selected in the config
     """
     config = {'start_date': '2021-01-01', 'tables': []}
     stream = get_catalog().streams[0]
-    result = sync_stream(config, {}, stream, sftp_client)
+    result = sync_stream(config, {}, stream, mock_client)
     assert result == 0
 
 

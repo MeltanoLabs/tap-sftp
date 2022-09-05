@@ -1,8 +1,8 @@
 import singer
 from singer import metadata
 
-from tap_nicesftp import client
-from tap_nicesftp.singer_encodings import json_schema
+from tap_sftp import client
+from tap_sftp.singer_encodings import json_schema
 
 LOGGER = singer.get_logger()
 

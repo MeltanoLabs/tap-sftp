@@ -1,5 +1,5 @@
 from unittest.mock import patch
-from tap_nicesftp.aws_ssm import AWS_SSM
+from tap_sftp.aws_ssm import AWS_SSM
 
 
 class MockClient:

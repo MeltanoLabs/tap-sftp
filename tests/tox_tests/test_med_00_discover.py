@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from tap_nicesftp.discover import discover_streams
-from tests.configuration.fixtures import get_sample_file_path, get_table_spec
+from tap_sftp.discover import discover_streams
+from tests.configuration.fixtures import get_sample_file_path, get_table_spec, sftp_client
 
 expected_schema = {
             "type": "object",
@@ -34,13 +34,26 @@ expected_schema = {
             }
         }
 
+# @patch('tap_sftp.client', return_value=1)
+# @patch('tap_sftp.tap.sync_stream')
+# def test_sync(patch_sync_stream, mock_client, sftp_client):
+#     catalog = get_catalog()
+    
+#     mock_client.return_value = sftp_client
+
+
+@patch('tap_sftp.client')
 @patch('tap_sftp.client.SFTPConnection.get_files_by_prefix')
 @patch('tap_sftp.client.SFTPConnection.get_file_handle')
-def test_discover_streams(patch_file_handle, patch_files):
+def test_discover_streams(patch_file_handle, patch_files, mock_client, sftp_client):
     # mock out the files returned from the sftp list
     patch_files.return_value = [
         {'filepath': '/Export/fake_file.txt', 'last_modified': datetime.now(timezone.utc)}
     ]
+
+    mock_client.return_value = sftp_client
+
+
     config = {
         'host': '',
         'username': '',
@@ -53,13 +66,17 @@ def test_discover_streams(patch_file_handle, patch_files):
     assert streams[0].get('schema') == expected_schema
 
 
+@patch('tap_sftp.client')
 @patch('tap_sftp.client.SFTPConnection.get_files_by_prefix')
 @patch('tap_sftp.client.SFTPConnection.get_file_handle')
-def test_discover_streams_decrypt(patch_file_handle, patch_files):
+def test_discover_streams_decrypt(patch_file_handle, patch_files, mock_client, sftp_client):
     # mock out the files returned from the sftp list
     patch_files.return_value = [
         {'filepath': '/Export/fake_file.txt', 'last_modified': datetime.now(timezone.utc)}
     ]
+
+    mock_client.return_value = sftp_client
+
     config = {
         'host': '',
         'username': '',

@@ -11,7 +11,7 @@ import pytz
 import singer
 from paramiko.ssh_exception import AuthenticationException, SSHException
 
-from tap_nicesftp import decrypt
+from tap_sftp import decrypt
 
 LOGGER = singer.get_logger()
 
@@ -31,15 +31,12 @@ class SFTPConnection():
         self.decrypted_file = None
         self.key = None
         self.transport = None
-        
+
         if private_key_file:
             key_path = os.path.expanduser(private_key_file)
             self.key = paramiko.RSAKey.from_private_key_file(key_path)
-        #self.__sftp = None
-        self.__connect()
-        # return self.__sftp
-        # self.sftp = self.__connect()
 
+        self.__connect()
 
     # If connection is snapped during connect flow, retry up to a
     # minute for SSH connection to succeed. 2^6 + 2^5 + ...

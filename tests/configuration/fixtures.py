@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from pytest import fixture
 from singer.catalog import Catalog
-from tap_nicesftp.client import connection
+from tap_sftp.client import connection
 
 
 @fixture

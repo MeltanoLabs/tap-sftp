@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from tap_nicesftp.decrypt import gpg_decrypt
+from tap_sftp.decrypt import gpg_decrypt
 from tests.configuration.fixtures import get_sample_file_path
 
 

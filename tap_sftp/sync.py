@@ -1,9 +1,9 @@
 import singer
 from singer import Transformer, metadata, utils
 
-from tap_nicesftp import client, stats
-from tap_nicesftp.aws_ssm import AWS_SSM
-from tap_nicesftp.singer_encodings import csv_handler
+from tap_sftp import client, stats
+from tap_sftp.aws_ssm import AWS_SSM
+from tap_sftp.singer_encodings import csv_handler
 
 LOGGER = singer.get_logger()
 
@@ -16,8 +16,8 @@ def sync_stream(config, state, stream, sftp_client):
     LOGGER.info('Syncing table "%s".', table_name)
     LOGGER.info('Getting files modified since %s.', modified_since)
 
-
     table_spec = [table_config for table_config in config["tables"] if table_config["table_name"] == table_name]
+
     if len(table_spec) == 0:
         LOGGER.info("No table configuration found for '%s', skipping stream", table_name)
         return 0
