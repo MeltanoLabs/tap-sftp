@@ -1,7 +1,7 @@
 # IDE
 .vscode
 .idea/*
-
+.devcontainer/
 
 # Python
 __pycache__/
@@ -27,6 +27,7 @@ blog_old.md
 node_modules
 *.pyc
 tmp
+_jot_*
 
 # Docs
 docs/_build/

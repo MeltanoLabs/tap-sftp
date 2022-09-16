@@ -1,12 +1,15 @@
 from unittest.mock import patch
 
 from tap_sftp.tap import do_discover, do_sync
-from tests.configuration.fixtures import get_catalog, get_table_spec
+from tests.configuration.fixtures import get_catalog, get_table_spec, sftp_client
 
-
+@patch('tap_sftp.client')
 @patch('tap_sftp.tap.sync_stream')
-def test_sync(patch_sync_stream):
+def test_sync(patch_sync_stream, mock_client, sftp_client):
     catalog = get_catalog()
+    
+    mock_client.return_value = sftp_client
+
     config = {
         'start_date': '2021-01-01',
         'host': '',
