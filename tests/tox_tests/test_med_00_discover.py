@@ -34,14 +34,6 @@ expected_schema = {
             }
         }
 
-# @patch('tap_sftp.client', return_value=1)
-# @patch('tap_sftp.tap.sync_stream')
-# def test_sync(patch_sync_stream, mock_client, sftp_client):
-#     catalog = get_catalog()
-    
-#     mock_client.return_value = sftp_client
-
-
 @patch('tap_sftp.client')
 @patch('tap_sftp.client.SFTPConnection.get_files_by_prefix')
 @patch('tap_sftp.client.SFTPConnection.get_file_handle')
