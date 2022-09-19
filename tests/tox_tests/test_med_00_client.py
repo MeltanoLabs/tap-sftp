@@ -6,7 +6,7 @@ from tests.configuration.fixtures import get_sample_file_path, sftp_client
 
 
 @patch('tempfile.TemporaryDirectory.__enter__', return_value=get_sample_file_path(''))
-def test_get_file_handle(sftp_client):
+def test_get_file_handle(patch_temp, sftp_client):
     """
         Patch the temp file location and the sftp conn. Confirms no errors reading the file after sftp get 
     """
