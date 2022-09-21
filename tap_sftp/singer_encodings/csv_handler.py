@@ -34,7 +34,7 @@ def get_row_iterator(iterable, options=None):
     # Replace any NULL bytes in the line given to the DictReader
     reader = csv.DictReader(
         io.TextIOWrapper(iterable, encoding=options.get('encoding', 'utf-8')),
-        fieldnames=None,
+        #fieldnames=None,
         restkey=SDC_EXTRA_COLUMN,
         delimiter=options.get('delimiter', ',')
     )
