@@ -40,7 +40,7 @@ def get_row_iterator(iterable, options=None):
     )
 
     if 'sanitize_headers' in options and options['sanitize_headers']:
-        reader.fieldnames = [sanitize_colname(col) for col in reader.fieldnames]
+        reader.fieldnames = [sanitize_colname(col) for col in reader.fieldnames].copy()
 
     headers = set(reader.fieldnames)
 
