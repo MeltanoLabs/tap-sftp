@@ -42,8 +42,8 @@ def get_row_iterator(iterable, options=None):
     if 'sanitize_headers' in options and options['sanitize_headers']:
         reader.fieldnames = [sanitize_colname(col) for col in reader.fieldnames].copy()
 
-    headers = set(reader.fieldnames + ['_sdc_source_file', '_sdc_source_lineno'])
-    # headers = set(reader.fieldnames)
+    # headers = set(reader.fieldnames + ['_sdc_source_file', '_sdc_source_lineno'])
+    headers = set(reader.fieldnames)
     if options.get('key_properties'):
         key_properties = set(options['key_properties'])
         if not key_properties.issubset(headers):
