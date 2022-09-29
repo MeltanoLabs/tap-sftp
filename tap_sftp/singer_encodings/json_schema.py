@@ -42,7 +42,7 @@ def sample_file(conn, table_spec, f, sample_rate, max_records, config):
             'delimiter': table_spec['delimiter'],
             'file_name': f['filepath'],
             'encoding': table_spec.get('encoding', 'utf-8'),
-            'sanitize_headers': table_spec.get('sanitize_headers', False)}
+            'clean_colnames': table_spec.get('clean_colnames', False)}
 
     readers = csv_handler.get_row_iterators(file_handle, options=opts, infer_compression=True)
 
