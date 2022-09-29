@@ -39,7 +39,7 @@ def get_row_iterator(iterable, options=None):
         delimiter=options.get('delimiter', ',')
     )
 
-    if 'sanitize_headers' in options and options['sanitize_headers']:
+    if 'clean_colnames' in options and options['clean_colnames']:
         reader.fieldnames = [sanitize_colname(col) for col in reader.fieldnames].copy()
 
     headers = set(reader.fieldnames + ['_sdc_source_file', '_sdc_source_lineno'])

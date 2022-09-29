@@ -6,7 +6,7 @@ def test_sanitize_headers():
     options = {
         'delimiter': ',',
         'key_properties': ['id'],
-        'sanitize_headers': True,
+        'clean_colnames': True,
     }
 
     with open(get_sample_file_path('unsanitized_file.csv'), 'rb') as file:
