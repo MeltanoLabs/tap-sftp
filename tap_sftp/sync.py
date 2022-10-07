@@ -64,7 +64,7 @@ def sync_file(sftp_file_spec, stream, table_spec, config, sftp_client):
             'delimiter': table_spec.get('delimiter', ','),
             'file_name': sftp_file_spec['filepath'],
             'encoding': table_spec.get('encoding', 'utf-8'),
-            'sanitize_headers': table_spec.get('sanitize_headers', False)}
+            'clean_colnames': table_spec.get('clean_colnames', False)}
 
     readers = csv_handler.get_row_iterators(file_handle, options=opts, infer_compression=True)
 
