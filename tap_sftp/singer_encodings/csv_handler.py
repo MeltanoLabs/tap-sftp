@@ -9,6 +9,7 @@ from tap_sftp.singer_encodings import compression
 SDC_EXTRA_COLUMN = "_sdc_extra"
 SDC_META_COLUMNS = ['_sdc_source_file', '_sdc_source_lineno']
 
+
 def get_row_iterators(iterable, options={}, infer_compression=False):
     """Accepts an interable, options and a flag to infer compression and yields
     csv.DictReader objects which can be used to yield CSV rows."""
@@ -31,7 +32,7 @@ def get_row_iterator(iterable, options=None):
         delimiter=options.get('delimiter', ',')
     )
 
-    headers = set(reader.fieldnames + SDC_META_COLUMNS) 
+    headers = set(reader.fieldnames + SDC_META_COLUMNS)
     if options.get('key_properties'):
         key_properties = set(options['key_properties'])
         if not key_properties.issubset(headers):
