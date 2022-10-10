@@ -65,3 +65,12 @@ def get_table_spec():
         'key_properties': [],
         'delimiter': ','
     }
+
+def get_table_spec_meta_keys():
+    return {
+        'table_name': 'fake_file',
+        'search_prefix': '/Export',
+        'search_pattern': 'fake_file*',
+        'key_properties': ['_sdc_source_file', '_sdc_source_lineno'],
+        'delimiter': ','
+    }

@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from tap_sftp.sync import sync_file, sync_stream
 from tests.configuration.fixtures import (get_catalog, get_sample_file_path,
-                                          get_table_spec, sftp_client)
+                                          get_table_spec, sftp_client, get_table_spec_meta_keys)
 
 @patch('tap_sftp.client')
 def test_sync_stream_no_tables_selected(mock_client):
@@ -49,6 +49,25 @@ def test_sync_file(mock_file_handle, patch_write, sftp_client):
         stream = get_catalog().streams[0]
         config = {'host': '', 'username': ''}
         synced_records = sync_file(file_conf, stream, get_table_spec(), config, sftp_client)
+        assert synced_records == 1
+        patch_write.assert_called_with(
+            'fake_file',
+            {'Col1': 'data1', 'Col2': 'data2'}
+        )
+
+
+@patch('singer.write_record')
+@patch('tap_sftp.client.SFTPConnection.get_file_handle')
+def test_sync_file_metadata_columns(mock_file_handle, patch_write, sftp_client):
+    """
+        Mock the file handle so it reads our test file. Then assert the write_record data is correct.
+    """
+    file_conf = {'filepath': 'fake_file.txt', 'last_modified': ''}
+    with open(get_sample_file_path('fake_file.txt'), 'rb') as f:
+        mock_file_handle.return_value = f
+        stream = get_catalog().streams[0]
+        config = {'host': '', 'username': ''}
+        synced_records = sync_file(file_conf, stream, get_table_spec_meta_keys(), config, sftp_client)
         assert synced_records == 1
         patch_write.assert_called_with(
             'fake_file',
