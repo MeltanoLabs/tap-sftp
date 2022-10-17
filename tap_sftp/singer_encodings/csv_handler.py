@@ -34,7 +34,7 @@ def get_row_iterator(iterable, options=None):
     # Replace any NULL bytes in the line given to the DictReader
     reader = csv.DictReader(
         io.TextIOWrapper(iterable, encoding=options.get('encoding', 'utf-8')),
-        #fieldnames=None,
+        fieldnames=None,
         restkey=SDC_EXTRA_COLUMN,
         delimiter=options.get('delimiter', ',')
     )
@@ -43,7 +43,7 @@ def get_row_iterator(iterable, options=None):
         reader.fieldnames = [sanitize_colname(col) for col in reader.fieldnames].copy()
 
     headers = set(reader.fieldnames + ['_sdc_source_file', '_sdc_source_lineno'])
-    # headers = set(reader.fieldnames)
+
     if options.get('key_properties'):
         key_properties = set(options['key_properties'])
         if not key_properties.issubset(headers):
