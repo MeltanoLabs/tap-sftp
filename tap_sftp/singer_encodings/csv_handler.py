@@ -2,7 +2,6 @@ import codecs
 import csv
 import io
 import os
-import singer
 import re
 
 from tap_sftp import decrypt
@@ -40,10 +39,8 @@ def get_row_iterator(iterable, options=None):
         delimiter=options.get('delimiter', ',')
     )
 
-
     if 'sanitize_header' in options and options['sanitize_header']:
         reader.fieldnames = [sanitize_colname(col) for col in reader.fieldnames].copy()
-
 
     headers = set(reader.fieldnames + SDC_META_COLUMNS)
 
