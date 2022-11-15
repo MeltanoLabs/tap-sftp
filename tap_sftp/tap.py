@@ -12,7 +12,7 @@ from tap_sftp.sync import sync_stream
 
 REQUIRED_CONFIG_KEYS = ["username", "port", "host", "tables", "start_date"]
 REQUIRED_DECRYPT_CONFIG_KEYS = ['SSM_key_name', 'gnupghome', 'passphrase']
-REQUIRED_TABLE_SPEC_CONFIG_KEYS = ["key_properties", "delimiter", "table_name", "search_prefix", "search_pattern"]
+REQUIRED_TABLE_SPEC_CONFIG_KEYS = ["delimiter", "table_name", "search_prefix", "search_pattern"]
 LOGGER = singer.get_logger()
 
 
