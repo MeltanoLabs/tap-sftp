@@ -69,12 +69,12 @@ Create a `config.json` file with connection details to snowflake.
    - `table_name`: The name that should be given to the table (stream)
    - `search_prefix`: Folder where the files are located
    - `search_pattern`: Regex pattern to match the file names
-   - `delimiter`: CSV file delimiter,
+   - `delimiter`: CSV file delimiter
 
    The following table configuration fields are optional:
    - `key_properties`: Array containing the unique keys of the table. Defaults to `['_sdc_source_file', '_sdc_source_lineno']`, representing the file name and line number. Specify an emtpy array (`[]`) to load all new files without a replication key
    - `encoding`: File encoding, defaults to `utf-8`
-   - `sanitize_header`: Boolean, specifies wether to clean up header names so that they are more likely to be accepted by a target SQL database.
+   - `sanitize_header`: Boolean, specifies wether to clean up header names so that they are more likely to be accepted by a target SQL database
 
 ## Discovery mode:
 
