@@ -2,6 +2,7 @@ import codecs
 import csv
 import io
 import os
+import re
 
 from tap_sftp import decrypt
 from tap_sftp.singer_encodings import compression
@@ -19,6 +20,12 @@ def get_row_iterators(iterable, options={}, infer_compression=False):
         yield get_row_iterator(item, options=options)
 
 
+def sanitize_colname(col_name):
+    sanitized = re.sub(r'[^0-9a-zA-Z_]+', '_', col_name)
+    prefixed = re.sub(r'^(\d+)', r'x_\1', sanitized)
+    return prefixed.lower()
+
+
 def get_row_iterator(iterable, options=None):
     """Accepts an interable, options and returns a csv.DictReader object
     which can be used to yield CSV rows."""
@@ -32,7 +39,11 @@ def get_row_iterator(iterable, options=None):
         delimiter=options.get('delimiter', ',')
     )
 
+    if 'sanitize_header' in options and options['sanitize_header']:
+        reader.fieldnames = [sanitize_colname(col) for col in reader.fieldnames].copy()
+
     headers = set(reader.fieldnames + SDC_META_COLUMNS)
+
     if options.get('key_properties'):
         key_properties = set(options['key_properties'])
         if not key_properties.issubset(headers):

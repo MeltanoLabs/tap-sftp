@@ -38,10 +38,11 @@ def sample_file(conn, table_spec, f, sample_rate, max_records, config):
         file_handle = conn.get_file_handle(f)
 
     # Add file_name to opts and flag infer_compression to support gzipped files
-    opts = {'key_properties': table_spec['key_properties'],
-            'delimiter': table_spec['delimiter'],
+    opts = {'key_properties': table_spec.get('key_properties', ['_sdc_source_file', '_sdc_source_lineno']),
+            'delimiter': table_spec.get('delimiter', ','),
             'file_name': f['filepath'],
-            'encoding': table_spec.get('encoding', 'utf-8')}
+            'encoding': table_spec.get('encoding', 'utf-8'),
+            'sanitize_header': table_spec.get('sanitize_header', False)}
 
     readers = csv_handler.get_row_iterators(file_handle, options=opts, infer_compression=True)
 

@@ -26,7 +26,7 @@ $ pip install .
 
 ## Configuration:
 
-1. Create a `config.json` file with connection details to snowflake.
+Create a `config.json` file with connection details to snowflake.
 
    ```json
    {
@@ -41,7 +41,8 @@ $ pip install .
                 "search_pattern": "MyExportData.*\\.zip.gpg$",
                 "key_properties": [],
                 "delimiter": ",",
-                "encoding": "utf-8"
+                "encoding": "utf-8",
+                "sanitize_header": false
             }
         ],
         "start_date":"2021-01-28",
@@ -55,7 +56,25 @@ $ pip install .
    ```
    If using the decryption feature you must pass the configs shown above, including the AWS SSM parameter name for where the decryption private key is stored. In order to retrieve this parameter the runtime environment must have access to SSM through IAM environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN).
 
-   The private_key_file is optional.
+   The following fields are required for the connection configuration:
+   - `host`: Hostname or IP of the SFTP server
+   - `username`: Username for the SFTP server
+   - `port`: Port number for the SFTP server
+   - `tables`: An array of tables to load. See table configuration below
+   - `start_date`: Earliest file date to synchronize
+   - either `password` or `private_key_file`: Authentication to the SFTP Server
+
+
+   The following table configuration fields are required:
+   - `table_name`: The name that should be given to the table (stream)
+   - `search_prefix`: Folder where the files are located
+   - `search_pattern`: Regex pattern to match the file names
+   - `delimiter`: A one-character string delimiter used to separate fields. Default, is `,`.
+
+   The following table configuration fields are optional:
+   - `key_properties`: Array containing the unique keys of the table. Defaults to `['_sdc_source_file', '_sdc_source_lineno']`, representing the file name and line number. Specify an emtpy array (`[]`) to load all new files without a replication key
+   - `encoding`: File encoding, defaults to `utf-8`
+   - `sanitize_header`: Boolean, specifies whether to clean up header names so that they are more likely to be accepted by a target SQL database
 
 ## Discovery mode:
 
