@@ -42,7 +42,8 @@ Create a `config.json` file with connection details to snowflake.
                 "key_properties": [],
                 "delimiter": ",",
                 "encoding": "utf-8",
-                "sanitize_header": false
+                "sanitize_header": false,
+                "skip_rows": 0
             }
         ],
         "start_date":"2021-01-28",
@@ -75,6 +76,7 @@ Create a `config.json` file with connection details to snowflake.
    - `key_properties`: Array containing the unique keys of the table. Defaults to `['_sdc_source_file', '_sdc_source_lineno']`, representing the file name and line number. Specify an emtpy array (`[]`) to load all new files without a replication key
    - `encoding`: File encoding, defaults to `utf-8`
    - `sanitize_header`: Boolean, specifies whether to clean up header names so that they are more likely to be accepted by a target SQL database
+   - `skip_rows`: Integer, specifies the number of rows to skip at the top of the file to handle non-data content like comments or other text. Default 0.
 
 ## Discovery mode:
 
