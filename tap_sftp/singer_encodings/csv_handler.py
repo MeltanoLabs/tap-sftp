@@ -31,6 +31,9 @@ def get_row_iterator(iterable, options=None):
     which can be used to yield CSV rows."""
     options = options or {}
 
+    for i in range(options.get('skip_rows', 0)):
+        iterable.__next__()
+
     # Replace any NULL bytes in the line given to the DictReader
     reader = csv.DictReader(
         io.TextIOWrapper(iterable, encoding=options.get('encoding', 'utf-8')),
