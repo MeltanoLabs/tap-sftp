@@ -30,3 +30,18 @@ def test_no_sanitized_headers():
         parser = csv_handler.get_row_iterator(file, options=options)
         
     assert parser.fieldnames == ['id', 'Col($2)']
+
+
+def test_skip_header():
+    """Test the parser."""
+    options = {
+        'delimiter': ',',
+        'key_properties': ['id'],
+        'skip_rows': 1,
+    }
+
+    with open(get_sample_file_path('skip_rows_file.csv'), 'rb') as file:
+
+        parser = csv_handler.get_row_iterator(file, options=options)
+
+    assert parser.fieldnames == ['id', 'col1']
