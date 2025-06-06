@@ -1,0 +1,30 @@
+[project]
+name = "tap-sftp"
+version = "2.2.0"
+description = "Singer.io tap for extracting data"
+authors = [
+    { name = "Stitch" },
+    { name = "Meltano", email = "hello@meltano.com" },
+]
+requires-python = ">=3.9"
+classifiers = ["Programming Language :: Python :: 3 :: Only"]
+dependencies = [
+    "singer-python==6.1.1",
+    "paramiko==3.5.1",
+    "backoff==2.2.1",
+    "terminaltables==3.1.10",
+    "python-gnupg==0.5.4",
+    "boto3==1.38.31"
+]
+
+[project.urls]
+"Homepage" = "https://hub.meltano.com/extractors/tap-sftp"
+"Repository" = "https://github.com/meltano/tap-sftp"
+"Issues" = "https://github.com/meltano/tap-sftp/issues"
+
+[project.scripts]
+tap-sftp = "tap_sftp.tap:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
